@@ -3,7 +3,7 @@
 #[derive(Clone)]
 pub struct Process {
     pub id: u32,
-    pub priority: usize,  // Represents the current queue index
+    pub priority: usize, // Represents the current queue index
     pub remaining_time: u32,
     pub total_executed_time: u32,
 }
@@ -31,11 +31,10 @@ impl MLFQ {
         // Add the process to the appropriate queue based on its priority
         // Ensure the priority is within the valid range (0 to num_levels - 1)
         let priority = {
-            if process.priority<self.num_levels{
+            if process.priority < self.num_levels {
                 process.priority
-            }
-            else{
-                self.num_levels-1
+            } else {
+                self.num_levels - 1
             }
         };
         self.queues[priority].push(process);
@@ -47,22 +46,22 @@ impl MLFQ {
         // Execute the process for its time quantum or until completion
         // Update remaining_time, total_executed_time, and current_time
         // Move the process to a lower priority queue if it doesn't complete
-        let t  = self.time_quanta[queue_index];
-        if self.queues[queue_index].len()>0{
+        let t = self.time_quanta[queue_index];
+        if self.queues[queue_index].len() > 0 {
             let mut p = self.queues[queue_index].remove(0);
-            if p.remaining_time>t{
-                p.remaining_time-=t;
-                p.total_executed_time+=t;
-                self.current_time+=t;
-                if queue_index==self.num_levels-1{
+            if p.remaining_time > t {
+                p.remaining_time -= t;
+                p.total_executed_time += t;
+                self.current_time += t;
+                if queue_index == self.num_levels - 1 {
                     self.queues[queue_index].push(p);
-                }else{
-                    self.queues[queue_index+1].push(p);
+                } else {
+                    self.queues[queue_index + 1].push(p);
                 }
-            }else{
-                p.total_executed_time+=p.remaining_time;
-                self.current_time+=p.remaining_time;
-                p.remaining_time=0;
+            } else {
+                p.total_executed_time += p.remaining_time;
+                self.current_time += p.remaining_time;
+                p.remaining_time = 0;
             }
         }
     }
@@ -72,9 +71,9 @@ impl MLFQ {
         // TODO: Implement this function
         // Move all processes to the highest priority queue
         // Reset the priority of all processes to 0
-        for i in 1..self.num_levels{
-            while self.queues[i].len()>0{
-                let mut p=self.queues[i].remove(0);
+        for i in 1..self.num_levels {
+            while self.queues[i].len() > 0 {
+                let mut p = self.queues[i].remove(0);
                 self.queues[0].push(p);
             }
         }
@@ -98,10 +97,25 @@ mod tests {
     #[test]
     fn test_add_process() {
         let mut mlfq = MLFQ::new(3, vec![2, 4, 8]);
-        
-        let process1 = Process { id: 1, priority: 0, remaining_time: 10, total_executed_time: 0 };
-        let process2 = Process { id: 2, priority: 1, remaining_time: 5, total_executed_time: 0 };
-        let process3 = Process { id: 3, priority: 5, remaining_time: 8, total_executed_time: 0 };
+
+        let process1 = Process {
+            id: 1,
+            priority: 0,
+            remaining_time: 10,
+            total_executed_time: 0,
+        };
+        let process2 = Process {
+            id: 2,
+            priority: 1,
+            remaining_time: 5,
+            total_executed_time: 0,
+        };
+        let process3 = Process {
+            id: 3,
+            priority: 5,
+            remaining_time: 8,
+            total_executed_time: 0,
+        };
 
         mlfq.add_process(process1);
         mlfq.add_process(process2);
@@ -115,7 +129,12 @@ mod tests {
     #[test]
     fn test_execute_process() {
         let mut mlfq = MLFQ::new(3, vec![2, 4, 8]);
-        mlfq.queues[0].push(Process { id: 1, priority: 0, remaining_time: 5, total_executed_time: 0 });
+        mlfq.queues[0].push(Process {
+            id: 1,
+            priority: 0,
+            remaining_time: 5,
+            total_executed_time: 0,
+        });
 
         mlfq.execute_process(0);
 
@@ -128,8 +147,18 @@ mod tests {
     #[test]
     fn test_priority_boost() {
         let mut mlfq = MLFQ::new(3, vec![2, 4, 8]);
-        mlfq.queues[1].push(Process { id: 1, priority: 1, remaining_time: 5, total_executed_time: 3 });
-        mlfq.queues[2].push(Process { id: 2, priority: 2, remaining_time: 3, total_executed_time: 7 });
+        mlfq.queues[1].push(Process {
+            id: 1,
+            priority: 1,
+            remaining_time: 5,
+            total_executed_time: 3,
+        });
+        mlfq.queues[2].push(Process {
+            id: 2,
+            priority: 2,
+            remaining_time: 3,
+            total_executed_time: 7,
+        });
 
         mlfq.update_time(100); // Should trigger priority boost
 
@@ -141,8 +170,13 @@ mod tests {
     #[test]
     fn test_boost_does_not_occur_prematurely() {
         let mut mlfq = MLFQ::new(3, vec![2, 4, 8]);
-        mlfq.queues[1].push(Process { id: 1, priority: 1, remaining_time: 5, total_executed_time: 3 });
-        
+        mlfq.queues[1].push(Process {
+            id: 1,
+            priority: 1,
+            remaining_time: 5,
+            total_executed_time: 3,
+        });
+
         mlfq.update_time(50); // No boost should happen
 
         assert_eq!(mlfq.queues[1].len(), 1);
