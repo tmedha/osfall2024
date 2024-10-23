@@ -27,38 +27,39 @@ impl MLFQ {
 
     // Exercise 1: Queue Management
     pub fn add_process(&mut self, process: Process) {
-        // TODO: Implement this function
-        // Add the process to the appropriate queue based on its priority
-        // Ensure the priority is within the valid range (0 to num_levels - 1)
         let priority = {
             if process.priority < self.num_levels {
                 process.priority
             } else {
+                // Lowest priority available
                 self.num_levels - 1
             }
         };
+        // Push the process into the queue
         self.queues[priority].push(process);
     }
 
     // Exercise 2: Process Execution
     pub fn execute_process(&mut self, queue_index: usize) {
-        // TODO: Implement this function
-        // Execute the process for its time quantum or until completion
-        // Update remaining_time, total_executed_time, and current_time
-        // Move the process to a lower priority queue if it doesn't complete
+        // Fetch the time quantum
         let t = self.time_quanta[queue_index];
+        // Ensure that there is at least one process
         if self.queues[queue_index].len() > 0 {
             let mut p = self.queues[queue_index].remove(0);
             if p.remaining_time > t {
+                // p will stay after executing this time quantum
                 p.remaining_time -= t;
                 p.total_executed_time += t;
                 self.current_time += t;
                 if queue_index == self.num_levels - 1 {
+                    // Already in least priority queue
                     self.queues[queue_index].push(p);
                 } else {
+                    // Push to the queue with lesser priority
                     self.queues[queue_index + 1].push(p);
                 }
             } else {
+                // p will finish executing
                 p.total_executed_time += p.remaining_time;
                 self.current_time += p.remaining_time;
                 p.remaining_time = 0;
@@ -68,11 +69,10 @@ impl MLFQ {
 
     // Exercise 3: Priority Boost
     pub fn priority_boost(&mut self) {
-        // TODO: Implement this function
-        // Move all processes to the highest priority queue
-        // Reset the priority of all processes to 0
+        // For every queue with lesser priority than the highest
         for i in 1..self.num_levels {
             while self.queues[i].len() > 0 {
+                // Empty this queue and move all processes to the queue with the highest priority
                 let mut p = self.queues[i].remove(0);
                 self.queues[0].push(p);
             }
